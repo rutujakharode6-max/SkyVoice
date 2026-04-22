@@ -1,5 +1,8 @@
 import speech_recognition as sr
-import pyttsx3
+try:
+    import pyttsx3
+except ImportError:
+    pyttsx3 = None
 import sys
 import datetime
 import re
@@ -24,7 +27,10 @@ ctk.set_default_color_theme("blue")
 class AdvancedAssistant:
     def __init__(self, gui):
         self.gui = gui
-        self.engine = pyttsx3.init()
+        if pyttsx3:
+            self.engine = pyttsx3.init()
+        else:
+            self.engine = None
         self.recognizer = sr.Recognizer()
         self.commands_file = "commands.json"
         self.context = {"last_query": None, "last_response": None}
@@ -48,8 +54,9 @@ class AdvancedAssistant:
         self.gui.update_status(f"Speaking...")
         self.gui.add_to_history("Assistant", text)
         print(f"Assistant: {text}")
-        self.engine.say(text)
-        self.engine.runAndWait()
+        if self.engine:
+            self.engine.say(text)
+            self.engine.runAndWait()
         self.gui.update_status("Idle")
 
     def get_weather(self, city="London"):

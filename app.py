@@ -19,6 +19,10 @@ class MockGUI:
 mock_gui = MockGUI()
 assistant = AdvancedAssistant(mock_gui)
 
+# Disable pyttsx3 speech for the web version so it only speaks in the browser
+assistant.engine.say = lambda text: None
+assistant.engine.runAndWait = lambda: None
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -36,23 +40,6 @@ def process_command():
 @app.route('/history', methods=['GET'])
 def get_history():
     return jsonify(getattr(mock_gui, 'history', []))
-
-@app.route('/listen', methods=['GET'])
-def listen():
-    # This triggers the server-side microphone
-    def run_listen():
-        import speech_recognition as sr
-        recognizer = sr.Recognizer()
-        with sr.Microphone() as source:
-            try:
-                audio = recognizer.listen(source, timeout=5, phrase_time_limit=5)
-                text = recognizer.recognize_google(audio)
-                assistant.process_command(text)
-            except:
-                pass
-    
-    threading.Thread(target=run_listen).start()
-    return jsonify({"status": "listening started"})
 
 if __name__ == '__main__':
     # Create templates folder if it doesn't exist

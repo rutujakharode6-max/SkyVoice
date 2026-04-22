@@ -1,7 +1,5 @@
 SpeechRecognition
-pyttsx3
-# PyAudio is required for microphone access. 
-# On Windows, if 'pip install PyAudio' fails, you may need to install 
-# 'Microsoft C++ Build Tools' or download a precompiled wheel.
-PyAudio
 wikipedia
+Flask
+flask-cors
+requests
