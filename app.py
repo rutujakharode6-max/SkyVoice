@@ -20,8 +20,9 @@ mock_gui = MockGUI()
 assistant = AdvancedAssistant(mock_gui)
 
 # Disable pyttsx3 speech for the web version so it only speaks in the browser
-assistant.engine.say = lambda text: None
-assistant.engine.runAndWait = lambda: None
+if assistant.engine:
+    assistant.engine.say = lambda text: None
+    assistant.engine.runAndWait = lambda: None
 
 @app.route('/')
 def index():
