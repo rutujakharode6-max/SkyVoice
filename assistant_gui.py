@@ -15,14 +15,19 @@ import json
 import requests
 import threading
 import time
-import tkinter as tk
-import customtkinter as ctk
-from PIL import Image, ImageTk
-import math
+try:
+    import tkinter as tk
+    import customtkinter as ctk
+    from PIL import Image, ImageTk
+    
+    # Set appearance
+    ctk.set_appearance_mode("Dark")
+    ctk.set_default_color_theme("blue")
+    GUI_AVAILABLE = True
+except ImportError:
+    GUI_AVAILABLE = False
 
-# Set appearance
-ctk.set_appearance_mode("Dark")
-ctk.set_default_color_theme("blue")
+import math
 
 class AdvancedAssistant:
     def __init__(self, gui):
@@ -175,6 +180,9 @@ class AdvancedAssistant:
 
 class AssistantGUI:
     def __init__(self):
+        if not GUI_AVAILABLE:
+            print("GUI libraries not available.")
+            sys.exit(1)
         self.root = ctk.CTk()
         self.root.title("Premium Voice Assistant")
         self.root.geometry("600x700")
