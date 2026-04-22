@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyVoice | Advanced Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b8ed0;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #60a5fa, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status {
+            color: #94a3b8;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .wave-container {
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 2rem;
+        }
+
+        .bar {
+            width: 4px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 10px;
+            animation: bounce 1.2s infinite ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 100% { height: 20px; opacity: 0.5; }
+            50% { height: 60px; opacity: 1; }
+        }
+
+        .history {
+            background: rgba(0,0,0,0.2);
+            border-radius: 16px;
+            height: 300px;
+            overflow-y: auto;
+            text-align: left;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .msg {
+            margin-bottom: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            max-width: 80%;
+        }
+
+        .msg.user { background: #334155; margin-left: auto; }
+        .msg.assistant { background: #1e293b; border-left: 3px solid var(--primary); }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        input {
+            background: #334155;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 99px;
+            color: white;
+            flex: 1;
+            outline: none;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 99px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover { transform: scale(1.05); opacity: 0.9; }
+
+        .mic-btn {
+            background: #ef4444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SkyVoice</h1>
+        <div class="status" id="status">Ready</div>
+
+        <div class="wave-container" id="wave">
+            <!-- Bars will be added by JS -->
+        </div>
+
+        <div class="history" id="history">
+            <div class="msg assistant">Hello! I'm your voice assistant. You can type a command or click the mic to talk.</div>
+        </div>
+
+        <div class="controls">
+            <input type="text" id="userInput" placeholder="Type a command...">
+            <button onclick="sendCommand()">Send</button>
+            <button class="mic-btn" onclick="triggerMic()">🎤</button>
+        </div>
+    </div>
+
+    <script>
+        // Create wave bars
+        const wave = document.getElementById('wave');
+        for(let i=0; i<20; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            bar.style.animationDelay = `${i * 0.05}s`;
+            wave.appendChild(bar);
+        }
+
+        async function sendCommand() {
+            const input = document.getElementById('userInput');
+            const text = input.value.trim();
+            if(!text) return;
+
+            addMsg('user', text);
+            input.value = '';
+            document.getElementById('status').innerText = 'Processing...';
+
+            await fetch('/command', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({command: text})
+            });
+        }
+
+        async function triggerMic() {
+            document.getElementById('status').innerText = 'Listening on Server...';
+            await fetch('/listen');
+        }
+
+        function addMsg(sender, text) {
+            const history = document.getElementById('history');
+            const div = document.createElement('div');
+            div.className = `msg ${sender}`;
+            div.innerText = text;
+            history.appendChild(div);
+            history.scrollTop = history.scrollHeight;
+        }
+
+        // Poll for history updates
+        setInterval(async () => {
+            const res = await fetch('/history');
+            const data = await res.json();
+            const historyDiv = document.getElementById('history');
+            
+            // Very basic sync logic
+            if(data.length > 0) {
+                const last = data[data.length - 1];
+                const lastDisplayed = historyDiv.lastElementChild.innerText;
+                if(last.text !== lastDisplayed && last.sender === 'Assistant') {
+                    addMsg('assistant', last.text);
+                    document.getElementById('status').innerText = 'Ready';
+                }
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

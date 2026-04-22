@@ -1,0 +1,14 @@
+{
+  "custom_commands": [
+    {
+      "trigger": "open github",
+      "action_type": "url",
+      "action": "https://github.com"
+    },
+    {
+      "trigger": "check mail",
+      "action_type": "url",
+      "action": "https://gmail.com"
+    }
+  ]
+}
